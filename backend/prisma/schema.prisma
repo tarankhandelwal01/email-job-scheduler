@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EmailStatus {
+  SCHEDULED
+  SENDING
+  SENT
+  FAILED
+  UNKNOWN
+}
+
+model Campaign {
+  id             String   @id @default(uuid())
+  subject        String
+  body           String
+  startTime      DateTime
+  delayMs        Int
+  hourlyLimit    Int
+  idempotencyKey String?  @unique
+  userId         String?
+  createdAt      DateTime @default(now())
+  emails         Email[]
+  attachments    Json? // [{filename, contentType, contentBase64}] — shared across all recipients
+}
+
+model Email {
+  id            String      @id @default(uuid())
+  campaignId    String
+  campaign      Campaign    @relation(fields: [campaignId], references: [id])
+  recipient     String
+  senderEmail   String?
+  status        EmailStatus @default(SCHEDULED)
+  scheduledTime DateTime
+  sendStartedAt DateTime?
+  dispatchedAt  DateTime?
+  sentTime      DateTime?
+  messageId     String?
+  previewUrl    String?
+  attempts      Int         @default(0)
+  error         String?
+  createdAt     DateTime    @default(now())
+
+  @@index([status])
+  @@index([scheduledTime])
+}
