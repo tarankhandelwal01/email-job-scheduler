@@ -1,3 +1,4 @@
+import http from "http";
 import { Worker, Job, DelayedError, UnrecoverableError } from "bullmq";
 import { connection } from "./redis";
 import { EMAIL_QUEUE, EmailJobData } from "./queue";
@@ -136,6 +137,14 @@ worker.on("failed", (job, err) => {
   }
 });
 worker.on("error", (err) => console.error("Worker error:", err));
+
+// Free-tier hosts (Render, etc.) that only offer "Web Service" for free
+// require binding to $PORT and responding to health checks — this worker has
+// no HTTP API of its own, so this is a minimal stub purely to satisfy that.
+// Inert locally: $PORT is only set by the hosting platform.
+if (process.env.PORT) {
+  http.createServer((_req, res) => res.end("worker ok")).listen(process.env.PORT);
+}
 
 process.on("unhandledRejection", (reason) => {
   console.error("Unhandled rejection:", reason);
