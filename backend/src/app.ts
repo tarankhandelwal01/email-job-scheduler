@@ -9,8 +9,8 @@ app.use(cors());
 app.use(express.json({ limit: "15mb" }));
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
-// Temporary — checks raw TCP reachability to Ethereal from this host, to
-// tell apart a network-level block from an SMTP/auth-level failure.
+// Raw TCP reachability to Ethereal, bypassing SMTP/auth — lets anyone verify
+// the outbound-SMTP block documented in the README's "Live deployment" section.
 app.get("/debug/smtp-check", async (_req, res) => {
   const check = (port: number) =>
     new Promise<string>((resolve) => {

@@ -2,6 +2,12 @@
 
 A fault-tolerant, distributed email scheduling system built for the ReachInbox / Outbox Labs Software Development Intern assignment: schedules bulk email sends through BullMQ, persists state in Postgres so no job is ever lost on restart, enforces distributed per-sender rate limits through Redis, and exposes a Next.js dashboard with real Google OAuth.
 
+## Live deployment
+- Frontend: https://email-job-scheduler-one.vercel.app
+- API: https://email-job-scheduler-nydf.onrender.com
+
+Login, dashboard, compose, CSV upload, attachments, and scheduling are all fully functional on the hosted URLs above. Actual SMTP delivery is not — Render's free tier blocks all outbound SMTP traffic. Verify this yourself at `https://email-job-scheduler-nydf.onrender.com/debug/smtp-check`, which opens a raw TCP connection to Ethereal on ports 465 and 587 (bypassing SMTP/auth entirely) and reports the result — both time out at the network level. This is a hosting-infrastructure restriction, not an application bug — every send-related feature (scheduling, retries, rate limiting, crash recovery) is exercised and verified against localhost in the demo video, where outbound SMTP is unrestricted.
+
 ## Architecture at a glance
 
 ```
@@ -225,6 +231,7 @@ SMTP errors are classified (`src/smtpErrors.ts`): a permanent rejection (5xx, ba
 - **`EPERM` renaming `query_engine-windows.dll.node` during `prisma generate`/`migrate`**: Windows file lock, usually because the API or worker process is still running and holding the Prisma Client's native binary open — stop both fully before migrating. If it persists with both stopped, check Task Manager for a lingering `node.exe`, or (if the project lives in a OneDrive-synced folder) pause OneDrive syncing temporarily — cloud sync clients can transiently lock native binaries the instant they change.
 - **Frontend shows `Failed to fetch`**: the backend API isn't running or isn't reachable — check `http://localhost:4000/health` directly in a browser.
 - **Google OAuth `invalid_client`**: usually a stale Next.js dev server that started before `.env.local` existed — restart `npm run dev` in `frontend/`.
+- **Emails stuck retrying "Connection timeout" on the hosted deployment**: expected — see [Live deployment](#live-deployment) above. Render's free tier blocks outbound SMTP entirely; run locally to see emails actually send.
 
 ## Features implemented
 **Backend**: scheduler (BullMQ delayed jobs, no cron), persistence across restart (verified against a full Redis wipe), per-sender hourly rate limiting (Redis-atomic), configurable concurrency + min-delay, three-layer idempotency, SMTP error classification, crash-safe state machine (`SCHEDULED → SENDING → SENT/FAILED/UNKNOWN`), manual retry + cancel endpoints, file attachments, recipient-count and request-size caps, startup connectivity diagnostics, crash-proof error handling (no request can take down the process), bulk enqueue for high-volume scheduling.
