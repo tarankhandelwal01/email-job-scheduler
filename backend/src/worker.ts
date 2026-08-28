@@ -138,11 +138,10 @@ worker.on("failed", (job, err) => {
 });
 worker.on("error", (err) => console.error("Worker error:", err));
 
-// Free-tier hosts (Render, etc.) that only offer "Web Service" for free
-// require binding to $PORT and responding to health checks — this worker has
-// no HTTP API of its own, so this is a minimal stub purely to satisfy that.
-// Inert locally: $PORT is only set by the hosting platform.
-if (process.env.PORT) {
+
+// Gated on RENDER (set automatically by Render), not PORT — PORT is also
+// set locally for the API's own use and would collide with it here.
+if (process.env.RENDER) {
   http.createServer((_req, res) => res.end("worker ok")).listen(process.env.PORT);
 }
 
