@@ -9,6 +9,8 @@ const schema = z.object({
   REDIS_HOST: z.string().default("127.0.0.1"),
   REDIS_PORT: z.coerce.number().default(6379),
   REDIS_URL: z.string().optional(), // hosted providers (Railway, etc.) give one connection string instead of separate host/port
+  // Some networks block 465, others block 587 — no single port works everywhere.
+  SMTP_PORT: z.coerce.number().default(587),
   WORKER_CONCURRENCY: z.coerce.number().default(5),
   MIN_DELAY_BETWEEN_SENDS_MS: z.coerce.number().default(2000),
   MAX_EMAILS_PER_HOUR_PER_SENDER: z.coerce.number().default(200),
