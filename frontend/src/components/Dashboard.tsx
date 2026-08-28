@@ -80,7 +80,14 @@ export function Dashboard({ user }: { user: DashboardUser }) {
             loading={loading}
             emptyTitle="No scheduled emails"
             emptyDescription="Compose a new email to schedule your first send."
-            onCancel={(id) => cancelEmail(id).then(load)}
+            onCancel={(id) =>
+              cancelEmail(id)
+                .then(load)
+                .catch(() => {
+                  alert("Couldn't cancel — this email already started sending.");
+                  load();
+                })
+            }
           />
         ) : (
           <EmailList

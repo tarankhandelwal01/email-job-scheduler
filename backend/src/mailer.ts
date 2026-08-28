@@ -11,8 +11,8 @@ for (const s of config.ETHEREAL_SENDERS) {
     user,
     nodemailer.createTransport({
       host: "smtp.ethereal.email",
-      port: 465,
-      secure: true,
+      port: 587,
+      secure: false,
       auth: { user, pass },
     })
   );
