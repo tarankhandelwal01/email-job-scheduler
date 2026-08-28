@@ -2,9 +2,7 @@ import { prisma } from "./prisma";
 import { connection } from "./redis";
 import { senderEmails } from "./mailer";
 
-// Diagnostic only, not a gate — a dependency being briefly down at boot
-// isn't fatal, but finding out only on the first real request is worse
-// than a clear log line up front.
+// Diagnostic only, not a gate — a brief outage at boot shouldn't be fatal.
 export async function runStartupChecks(processName: string): Promise<void> {
   try {
     await prisma.$queryRaw`SELECT 1`;

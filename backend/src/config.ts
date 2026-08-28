@@ -16,9 +16,7 @@ const schema = z.object({
   MAX_EMAILS_PER_HOUR_PER_SENDER: z.coerce.number().default(200),
   MAX_LATENESS_MS: z.coerce.number().default(3_600_000),
   STALE_SENDING_MS: z.coerce.number().default(120_000),
-  // A size cap, not a rate limit — protects against one request creating an
-  // unbounded number of DB rows + jobs synchronously.
-  MAX_RECIPIENTS_PER_CAMPAIGN: z.coerce.number().default(10_000),
+  MAX_RECIPIENTS_PER_CAMPAIGN: z.coerce.number().default(10_000), // size cap, not a rate limit
   ETHEREAL_SENDERS: z.string().transform((s, ctx) => {
     try {
       const parsed = z.array(senderSchema).min(1).parse(JSON.parse(s));

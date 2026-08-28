@@ -7,9 +7,7 @@ import { config } from "../config";
 
 export const router = Router();
 
-// Express 4 doesn't catch rejected promises from async handlers — this
-// forwards any rejection to the error middleware in app.ts instead of
-// crashing the process.
+// Express 4 doesn't catch async rejections — forward them to app.ts's error middleware
 function asyncHandler(fn: (req: Request, res: Response) => Promise<void | Response>) {
   return (req: Request, res: Response, next: NextFunction) => {
     fn(req, res).catch(next);
@@ -68,7 +66,6 @@ router.post("/campaigns", asyncHandler(async (req, res) => {
   res.status(201).json(result);
 }));
 
-// Powers both dashboard tables: ?status=SCHEDULED or ?status=SENT
 router.get("/emails", asyncHandler(async (req, res) => {
   const status = typeof req.query.status === "string" ? req.query.status.toUpperCase() : undefined;
   const emails = await prisma.email.findMany({
@@ -92,7 +89,6 @@ router.get("/emails", asyncHandler(async (req, res) => {
   );
 }));
 
-// Manual recovery for FAILED / UNKNOWN emails — the operational "DLQ retry" action.
 router.post("/emails/:id/retry", asyncHandler(async (req, res) => {
   const email = await prisma.email.findUnique({ where: { id: req.params.id } });
   if (!email) return res.status(404).json({ error: "Not found" });
@@ -121,9 +117,7 @@ router.post("/emails/:id/retry", asyncHandler(async (req, res) => {
   res.json({ ok: true, emailId: email.id });
 }));
 
-// Cancel a not-yet-sent email. Only SCHEDULED is cancelable — once a worker
-// has claimed the row (SENDING) it's too late to safely pull back, since it
-// may already be mid-handoff to SMTP.
+// Once a worker claims the row (SENDING) it's too late to pull back safely
 router.post("/emails/:id/cancel", asyncHandler(async (req, res) => {
   const email = await prisma.email.findUnique({ where: { id: req.params.id } });
   if (!email) return res.status(404).json({ error: "Not found" });

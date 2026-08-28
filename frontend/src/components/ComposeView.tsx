@@ -23,8 +23,7 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 export function ComposeView({ onClose, onScheduled }: { onClose: () => void; onScheduled: () => void }) {
-  // One key per compose session, reused across retries so a double-click
-  // replays instead of creating a second campaign.
+  // Reused across retries so a double-click replays instead of double-scheduling
   const idempotencyKeyRef = useRef(crypto.randomUUID());
 
   const [recipients, setRecipients] = useState<string[]>([]);
@@ -55,8 +54,7 @@ export function ComposeView({ onClose, onScheduled }: { onClose: () => void; onS
       return setError(`"${tooLarge.name}" is too large — max 5MB per attachment.`);
     }
 
-    // Approximate existing total from base64 length (~4/3 the raw size);
-    // new files' sizes are exact, from the File objects themselves.
+    // base64 length ≈ 4/3 the raw byte size
     const existingBytes = attachments.reduce((sum, a) => sum + a.contentBase64.length * 0.75, 0);
     const newBytes = files.reduce((sum, f) => sum + f.size, 0);
     if (existingBytes + newBytes > MAX_TOTAL_ATTACHMENT_BYTES) {

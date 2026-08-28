@@ -1,8 +1,7 @@
 import nodemailer, { Transporter } from "nodemailer";
 import { config } from "./config";
 
-// One SMTP transport per Ethereal account. Trimmed defensively — clipboard
-// round-trips can add invisible whitespace that breaks auth silently.
+// .trim() guards against invisible whitespace from clipboard/Notepad round-trips
 const transports = new Map<string, Transporter>();
 for (const s of config.ETHEREAL_SENDERS) {
   const user = s.user.trim();

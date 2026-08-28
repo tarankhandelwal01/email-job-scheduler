@@ -2,10 +2,7 @@ import { app } from "./app";
 import { config } from "./config";
 import { runStartupChecks } from "./startupChecks";
 
-// Belt-and-suspenders: asyncHandler (routes/campaigns.ts) catches route-level
-// rejections, but this covers anything outside a request — e.g. a stray
-// rejection during startup — so the process logs and survives instead of
-// dying silently.
+// Catches rejections outside a request (asyncHandler covers in-request ones)
 process.on("unhandledRejection", (reason) => {
   console.error("Unhandled rejection:", reason);
 });
